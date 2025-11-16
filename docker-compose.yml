@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  # MCP Server
+  mcp-server:
+    build:
+      context: ./searxng-mcp-crawl
+      dockerfile: Dockerfile
+    container_name: mcp-searxng-server
+    ports:
+      - "32769:32769"
+    environment:
+      - SEARXNG_BASE_URL=http://searxng:8080
+      - HOST=0.0.0.0
+      - PORT=32769
+      - CONTENT_MAX_LENGTH=10000
+      - SEARCH_RESULT_LIMIT=10
+    restart: unless-stopped
+    depends_on:
+      - searxng
+    networks:
+      - mcp-network
+
+  # SearXNG Instance
+  searxng:
+    image: searxng/searxng:latest
+    container_name: searxng
+    ports:
+      - "32768:8080"
+    volumes:
+      - ./searxng-config:/etc/searxng:rw
+    environment:
+      - SEARXNG_BASE_URL=http://localhost:32768/
+    restart: unless-stopped
+    networks:
+      - mcp-network
+
+networks:
+  mcp-network:
+    driver: bridge
